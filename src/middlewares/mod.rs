@@ -1,1 +1,1 @@
-mod middlewares;
+pub mod middlewares;
