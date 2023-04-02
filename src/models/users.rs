@@ -2,7 +2,7 @@
 use serde::{Serialize, Deserialize};
 use sqlx;
 
-#[derive(Serialize, sqlx::FromRow)]
+#[derive(Serialize, sqlx::FromRow, Deserialize)]
 pub struct User{
     pub first_name: String,
     pub last_name: String,
