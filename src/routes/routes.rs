@@ -1,22 +1,18 @@
-use axum::{
-    Router,
-    routing::{get},
-};
+use axum::{routing::{get, post}, Extension, Router};
 
-use tower_http::cors::{CorsLayer, Any};
-use sqlx::postgres::PgPoolOptions;
+use sqlx::postgres::PgPool;
+use tower_http::cors::{Any, CorsLayer};
+use tracing::callsite::register;
 
-pub async fn create_routes(database_uri: ) -> Router<()>{
+mod user_controller;
 
-     let cors = CorsLayer::new().allow_origin(Any);
+use user_controller::register;
 
-     let pool = PgPoolOptions::new()
-        .connect(&d)
+pub async fn create_routes(Extension(database): Extension<PgPool>) -> Router<()> {
+    let cors = CorsLayer::new().allow_origin(Any);
 
     Router::new()
-        .route("/hello", get(|| async {
-            "Hello! World"
-        }))
+        .route("/hello", get(|| async { "Hello! World" }))
+        .route("/register", post(register))
         .layer(cors)
-
 }
