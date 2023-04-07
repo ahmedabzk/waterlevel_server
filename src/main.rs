@@ -1,8 +1,8 @@
-use waterlevel_server::runserver;
+use waterlevel_server::run;
 
 #[tokio::main]
 async fn main() {
     let database_uri = dotenvy::var("DATABASE_URL").expect("Set database_url env variable");
 
-    runserver(&database_uri).await;
+    run(&database_uri).await;
 }
