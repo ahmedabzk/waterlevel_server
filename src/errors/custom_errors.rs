@@ -1,7 +1,6 @@
-use axum::{response::IntoResponse, http::StatusCode, Json};
+use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum CustomErrors {
@@ -14,9 +13,9 @@ pub enum CustomErrors {
     UserAlreadyExist,
 }
 
-impl IntoResponse for CustomErrors{
+impl IntoResponse for CustomErrors {
     fn into_response(self) -> axum::response::Response {
-        let (status, err_msg) = match self{
+        let (status, err_msg) = match self {
             Self::InternalServerError => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "an internal server error occured",
@@ -29,6 +28,6 @@ impl IntoResponse for CustomErrors{
             Self::UserAlreadyExist => (StatusCode::BAD_REQUEST, "User already exist"),
         };
 
-        (status, Json(json!({"error": err_msg}))).into_response()
+        (status, Json(json!({ "error": err_msg }))).into_response()
     }
 }

@@ -1,4 +1,4 @@
-use axum::{Extension, Json};
+use axum::{debug_handler, Extension, Json};
 // use serde::{Deserialize, Serialize};
 // use serde_json;
 
@@ -6,8 +6,9 @@ use sqlx::PgPool;
 use validators::serde_json::{json, Value};
 
 use crate::errors::custom_errors::CustomErrors;
-use crate::models::users::{User};
+use crate::models::users::User;
 
+#[debug_handler]
 pub async fn register(
     Extension(pool): Extension<PgPool>,
     Json(credentials): Json<User>,
@@ -17,43 +18,36 @@ pub async fn register(
         || credentials.last_name.is_empty()
         || credentials.email.is_empty()
         || credentials.password.is_empty()
-
     {
         return Err(CustomErrors::MissingCredential);
     }
 
     // get the user of the email from the database
-
     let user = sqlx::query("SELECT email, password FROM users where email = $1")
         .bind(&credentials.email)
         .fetch_optional(&pool)
         .await
-        .map_err(|err| {
-            dbg!(err);
-            CustomErrors::InternalServerError
-        });
+        .map_err(|_| CustomErrors::InternalServerError)?;
 
     // if user already exits send user already exits
-    if let Ok(_) = user {
+    if user.is_some() {
         return Err(CustomErrors::UserAlreadyExist);
     }
 
+<<<<<<< HEAD
     let result = sqlx::query(
+=======
+    sqlx::query(
+>>>>>>> origin/main
         "INSERT into users (first_name, last_name, email, password) values ($1, $2, $3, $4)",
     )
     .bind(credentials.first_name)
     .bind(credentials.last_name)
     .bind(credentials.email)
     .bind(credentials.password)
-    // .bind(credentials.create_at)
-    // .bind(credentials.updated_at)
     .execute(&pool)
     .await
-    .map_err(|_err| CustomErrors::InternalServerError)?;
+    .map_err(|_| CustomErrors::InternalServerError)?;
 
-    if result.rows_affected() < 1 {
-        Err(CustomErrors::InternalServerError)
-    } else {
-        Ok(Json(json!({"msg": "registered successfuly"})))
-    }
+    Ok(Json(json!("registered successfully")))
 }
