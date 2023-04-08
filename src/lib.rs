@@ -6,11 +6,12 @@ mod middlewares;
 mod models;
 mod routes;
 
-use crate::routes::routes::create_routes;
+use crate::routes::app_routes::create_routes;
 
 use sqlx::postgres::PgPoolOptions;
 
 pub async fn run(database_uri: &str) {
+
     let pool = PgPoolOptions::new()
         .connect(database_uri)
         .await

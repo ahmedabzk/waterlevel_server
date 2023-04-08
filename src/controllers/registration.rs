@@ -37,13 +37,13 @@ pub async fn register(
     sqlx::query(
         "INSERT into users (first_name, last_name, email, password) values ($1, $2, $3, $4)",
     )
-    .bind(credentials.first_name)
-    .bind(credentials.last_name)
-    .bind(credentials.email)
-    .bind(credentials.password)
-    .execute(&pool)
-    .await
-    .map_err(|_| CustomErrors::InternalServerError)?;
+        .bind(credentials.first_name)
+        .bind(credentials.last_name)
+        .bind(credentials.email)
+        .bind(credentials.password)
+        .execute(&pool)
+        .await
+        .map_err(|_| CustomErrors::InternalServerError)?;
 
     Ok(Json(json!("registered successfully")))
 }

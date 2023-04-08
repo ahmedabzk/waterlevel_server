@@ -15,3 +15,12 @@ pub struct User {
     pub create_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
+
+
+#[derive(Debug, Serialize, FromRow, Deserialize)]
+pub struct RequestUser{
+    #[serde(skip)]
+    pub id: Uuid,
+    pub email: String,
+    pub password: String,
+}
