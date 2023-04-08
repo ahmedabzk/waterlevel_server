@@ -39,9 +39,8 @@ pub async fn register(
     }
 
     let result = sqlx::query(
-        "INSERT into users (id, first_name, last_name, email, password) values ($1, %2, $3, $4, $5)",
+        "INSERT into users (first_name, last_name, email, password) values ($1, $2, $3, $4)",
     )
-    .bind(credentials.id)
     .bind(credentials.first_name)
     .bind(credentials.last_name)
     .bind(credentials.email)
