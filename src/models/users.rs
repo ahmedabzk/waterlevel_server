@@ -24,3 +24,10 @@ pub struct RequestUser{
     pub email: String,
     pub password: String,
 }
+
+#[derive(Serialize,Deserialize, Debug)]
+pub struct ResponseUser{
+    pub id: Uuid,
+    pub email: String,
+    pub token: String,
+}

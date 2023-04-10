@@ -1,16 +1,22 @@
-use axum::{debug_handler, Extension, Json};
+use axum::extract::State;
+use axum::{debug_handler, Json};
 // use serde::{Deserialize, Serialize};
 // use serde_json;
 
 use sqlx::PgPool;
 use validators::serde_json::{json, Value};
 
+use crate::app_state::AppState;
 use crate::errors::custom_errors::CustomErrors;
 use crate::models::users::User;
+use crate::utilis::password::hash_password;
+use crate::utilis::token_wrapper::TokenWrapper;
+use crate::utilis::jwt::create_token;
 
-#[debug_handler]
+#[debug_handler(state = AppState)]
 pub async fn register(
-    Extension(pool): Extension<PgPool>,
+    State(db): State<PgPool>,
+    State(token_secret): State<TokenWrapper>,
     Json(credentials): Json<User>,
 ) -> Result<Json<Value>, CustomErrors> {
     // check if the fields are empty strings
@@ -25,7 +31,7 @@ pub async fn register(
     // get the user of the email from the database
     let user = sqlx::query("SELECT email, password FROM users where email = $1")
         .bind(&credentials.email)
-        .fetch_optional(&pool)
+        .fetch_optional(&db)
         .await
         .map_err(|_| CustomErrors::InternalServerError)?;
 
@@ -34,14 +40,17 @@ pub async fn register(
         return Err(CustomErrors::UserAlreadyExist);
     }
 
+    let pass = hash_password(&credentials.password).await?;
+    let token = create_token(&token_secret.0,credentials.email.clone()).await?;
     sqlx::query(
-        "INSERT into users (first_name, last_name, email, password) values ($1, $2, $3, $4)",
+        "INSERT into users (first_name, last_name, email, password, token) values ($1, $2, $3, $4, $5)",
     )
         .bind(credentials.first_name)
         .bind(credentials.last_name)
         .bind(credentials.email)
-        .bind(credentials.password)
-        .execute(&pool)
+        .bind(pass)
+        .bind(token)
+        .execute(&db)
         .await
         .map_err(|_| CustomErrors::InternalServerError)?;
 

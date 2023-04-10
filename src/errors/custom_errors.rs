@@ -11,6 +11,7 @@ pub enum CustomErrors {
     InternalServerError,
     UserDoesNotExist,
     UserAlreadyExist,
+    Unauthorized,
 }
 
 impl IntoResponse for CustomErrors {
@@ -26,6 +27,7 @@ impl IntoResponse for CustomErrors {
             Self::WrongCredential => (StatusCode::UNAUTHORIZED, "wrong credential"),
             Self::UserDoesNotExist => (StatusCode::UNAUTHORIZED, "User does not exist"),
             Self::UserAlreadyExist => (StatusCode::BAD_REQUEST, "User already exist"),
+            Self::Unauthorized => (StatusCode::UNAUTHORIZED, "authentication failed"),
         };
 
         (status, Json(json!({ "error": err_msg }))).into_response()

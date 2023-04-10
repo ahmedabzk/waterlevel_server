@@ -1,23 +1,22 @@
-use axum::Extension;
+use app_state::AppState;
+
 
 mod controllers;
 mod errors;
 mod middlewares;
 mod models;
 mod routes;
+pub mod utilis;
+pub mod app_state;
 
 use crate::routes::app_routes::create_routes;
 
-use sqlx::postgres::PgPoolOptions;
 
-pub async fn run(database_uri: &str) {
+pub async fn run(app_state: AppState) {
 
-    let pool = PgPoolOptions::new()
-        .connect(database_uri)
-        .await
-        .expect("unable to connect to database");
+  
 
-    let app = create_routes(Extension(pool)).await;
+    let app = create_routes(app_state).await;
 
     let addr = std::net::SocketAddr::from(([127, 0, 0, 1], 3000));
 
