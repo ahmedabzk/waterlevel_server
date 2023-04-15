@@ -1,9 +1,10 @@
 use axum::{
     routing::{get, post},
-    Router,
+    Router, middleware,
 };
 
 use crate::app_state::AppState;
+use crate::middlewares::middleware::require_auth;
 
 use tower_http::cors::{Any, CorsLayer};
 
@@ -14,8 +15,12 @@ pub async fn create_routes(app_state: AppState) -> Router<()> {
 
     Router::new()
         .route("/hello", get(|| async { "Hello! World" }))
-        .route("/register", post(register))
-        .route("/login", post(login))
+        .route_layer(middleware::from_fn_with_state(
+            app_state.clone(), 
+            require_auth
+        ))
+        .route("/api/v1/register", post(register))
+        .route("/api/v1/login", post(login))
         .layer(cors)
         .with_state(app_state)
 }

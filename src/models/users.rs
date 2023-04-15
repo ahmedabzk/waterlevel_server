@@ -31,3 +31,9 @@ pub struct ResponseUser{
     pub email: String,
     pub token: String,
 }
+
+#[derive(Serialize,Deserialize, Debug,FromRow)]
+pub struct TokenUser{
+    pub id: Uuid,
+    pub email: String,
+}
