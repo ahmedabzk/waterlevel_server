@@ -1,9 +1,8 @@
-use axum::extract::State;
+
 use chrono::Duration;
 use jsonwebtoken::{Header, EncodingKey, encode, decode, DecodingKey,Validation};
 use serde::{Serialize, Deserialize};
 use sqlx::{PgPool, Row};
-use uuid::Uuid;
 
 
 use crate::errors::custom_errors::CustomErrors;
@@ -11,16 +10,16 @@ use crate::models::users::TokenUser;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Claims{
-    pub id: Uuid,
+    pub email: String,
     pub exp: usize,
 }
 
-pub async fn create_token(secret: &str, id:Uuid) ->Result<String, CustomErrors> {
+pub async fn create_token(secret: &str, email:String) ->Result<String, CustomErrors> {
     let now = chrono::Utc::now();
     let expires_at = Duration::hours(1);
     let expires_at = now + expires_at;
     let exp = expires_at.timestamp() as usize;
-    let claims = Claims{exp,id};
+    let claims = Claims{exp, email};
 
     let token_header = Header::default();
     let key = EncodingKey::from_secret(secret.as_bytes());
@@ -36,7 +35,7 @@ pub async fn create_token(secret: &str, id:Uuid) ->Result<String, CustomErrors> 
 pub async fn verify_token(
     secret: &str, 
     token: &str,
-    State(db): State<PgPool>,
+    db: &PgPool,
 ) -> Result<Option<TokenUser>, CustomErrors> {
     let key = DecodingKey::from_secret(secret.as_bytes());
 
@@ -54,11 +53,11 @@ pub async fn verify_token(
         }
     })?;
 
-    let user_id = token_data.claims.id;
+    let user_email = token_data.claims.email;
 
-    let row = sqlx::query("SELECT id, email FROM users WHERE id = $1")
-        .bind(user_id)
-        .fetch_optional(&db)
+    let row = sqlx::query("SELECT id, email FROM users WHERE email = $1")
+        .bind(user_email)
+        .fetch_optional(db)
         .await
         .expect("got none");
 

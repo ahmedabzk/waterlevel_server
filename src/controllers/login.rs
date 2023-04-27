@@ -35,7 +35,7 @@ pub async fn login(
          if !password_verification{
             Err(CustomErrors::WrongCredential)
         } else{
-            let token = create_token(&token_secret.0, credentials.id).await?;
+            let token = create_token(&token_secret.0, credentials.email).await?;
             let response = ResponseUser{
                 id: user.id,
                 email: user.email,

@@ -20,7 +20,10 @@ pub async fn require_auth<T>(
     header: HeaderMap,
     mut request: Request<T>,
     next: Next<T>,
-) -> Result<Response, CustomErrors> {
+) -> Result<Response, CustomErrors>
+where
+T: Send + 'static
+{
     
     let auth_header = if let Some(token) = header.get("x-auth-token"){
         token.to_str().map_err(|err|{
@@ -35,7 +38,7 @@ pub async fn require_auth<T>(
 
     let user = verify_token(&token_secret.0, auth_header, &db)
         .await
-        .unwrap();
+        .map_err(|err| dbg!(err))?;
    
    if user.is_some(){
         request.extensions_mut().insert(user);
@@ -43,10 +46,9 @@ pub async fn require_auth<T>(
         println!("user is none");
         return  Err(CustomErrors::Unauthorized)
    }
-
    
-
-     Ok(next.run(request).await)
+   Ok(next.run(request).await)
+     
 
 }
 
