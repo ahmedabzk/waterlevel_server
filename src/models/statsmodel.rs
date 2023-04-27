@@ -27,3 +27,13 @@ pub struct NewStats{
     pub turbidity: f32,
     pub water_level: f32,
 }
+
+#[derive(Serialize,Deserialize, Debug)]
+pub struct ResponseStats{
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub chlorine_level: f32,
+    pub ph: f32,
+    pub turbidity: f32,
+    pub water_level: f32,
+}

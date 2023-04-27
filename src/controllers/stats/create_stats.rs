@@ -7,7 +7,7 @@ use sqlx::PgPool;
 
 
 use crate::app_state::AppState;
-use crate::models::statsmodel::NewStats;
+use crate::models::statsmodel::{NewStats, ResponseStats};
 use crate::errors::custom_errors::CustomErrors;
 use crate::utilis::jwt::verify_token;
 use crate::utilis::token_wrapper::TokenWrapper;
@@ -48,4 +48,40 @@ pub async fn post_stats(
         .map_err(|_| CustomErrors::InternalServerError)?;
 
     Ok(Json(json!("created successfully")))
+}
+
+
+pub async fn get_stats(
+    State(db): State<PgPool>,
+    State(token_secret): State<TokenWrapper>,
+    header: HeaderMap,
+    Json(new_stats): Json<NewStats>,
+) -> Result<Json<Value>, CustomErrors>{
+    let auth_header = if let Some(token) = header.get("x-auth-token"){
+        token.to_str().map_err(|err| {
+            println!("failed to extracting header from token {:?}", err);
+            CustomErrors::InternalServerError
+        })?
+    }else{
+        return Err(CustomErrors::Unauthorized);
+    };
+
+    let user = verify_token(&token_secret.0, auth_header, &db)
+        .await
+        .unwrap().ok_or(CustomErrors::InvalidToken)?;
+
+    let user_id = user.id;
+
+    let row = sqlx::query("SELECT * FROM stats where id=$1")
+        .bind(user_id)
+        .fetch_all(&db)
+        .await
+        .map_err(|_| CustomErrors::InternalServerError)?;
+
+    
+
+    
+
+    Ok(Json(json!("response")))
+
 }
