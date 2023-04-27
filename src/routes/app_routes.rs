@@ -9,7 +9,9 @@ use crate::middlewares::middleware::require_auth;
 
 use tower_http::cors::{Any, CorsLayer};
 
-use crate::{controllers::{registration::register, login::login, stats::post_stats},};
+use crate::controllers::auth::{registration::register, login::login};
+use crate::controllers::stats::{create_stats::post_stats};
+
 
 pub async fn create_routes(app_state: AppState) -> Router<()> {
     let cors = CorsLayer::new().allow_origin(Any);
