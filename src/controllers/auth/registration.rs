@@ -11,7 +11,6 @@ use crate::errors::custom_errors::CustomErrors;
 use crate::models::users::User;
 use crate::utilis::password::hash_password;
 
-
 #[debug_handler(state = AppState)]
 pub async fn register(
     State(db): State<PgPool>,
@@ -42,13 +41,13 @@ pub async fn register(
     sqlx::query(
         "INSERT into users (first_name, last_name, email, password) values ($1, $2, $3, $4)",
     )
-        .bind(credentials.first_name)
-        .bind(credentials.last_name)
-        .bind(credentials.email)
-        .bind(pass)
-        .execute(&db)
-        .await
-        .map_err(|_| CustomErrors::InternalServerError)?;
+    .bind(credentials.first_name)
+    .bind(credentials.last_name)
+    .bind(credentials.email)
+    .bind(pass)
+    .execute(&db)
+    .await
+    .map_err(|_| CustomErrors::InternalServerError)?;
 
     Ok(Json(json!("registered successfully")))
 }

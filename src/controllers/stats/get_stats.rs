@@ -2,21 +2,22 @@ use axum::debug_handler;
 use axum::extract::{Json, State};
 use axum::http::HeaderMap;
 use serde_json::{json, Value};
-use sqlx::PgPool;
+use sqlx::{FromRow, PgPool};
 
 use crate::app_state::AppState;
 use crate::errors::custom_errors::CustomErrors;
-use crate::models::statsmodel::NewStats;
+use crate::models::statsmodel::{ResponseStats};
 use crate::utilis::jwt::verify_token;
 use crate::utilis::token_wrapper::TokenWrapper;
 
 #[debug_handler(state = AppState)]
-pub async fn post_stats(
+pub async fn get_all_stats(
     State(db): State<PgPool>,
     State(token_secret): State<TokenWrapper>,
     header: HeaderMap,
-    Json(new_stats): Json<NewStats>,
 ) -> Result<Json<Value>, CustomErrors> {
+
+
     let auth_header = header
         .get("x-auth-token")
         .ok_or(CustomErrors::Unauthorized)?
@@ -25,19 +26,15 @@ pub async fn post_stats(
 
     let user = verify_token(&token_secret.0, auth_header, &db)
         .await?
-        .ok_or(CustomErrors::Unauthorized)?;
+        .ok_or(CustomErrors::InvalidToken)?;
 
-    let user_id = user.id;
+    let row = sqlx::query("SELECT * FROM stats where user_id=$1")
+        .bind(user.id)
+        .fetch_all(&db)
+        .await?
+        .iter()
+        .map(|stats| ResponseStats::from_row(stats).expect("values should be there"))
+        .collect::<Vec<_>>();
 
-    sqlx::query(
-        "INSERT INTO stats (user_id, chlorine_level, ph, turbidity, water_level) values ($1, $2, $3, $4, $5)")
-        .bind(user_id)
-        .bind(new_stats.chlorine_level)
-        .bind(new_stats.ph)
-        .bind(new_stats.turbidity)
-        .bind(new_stats.water_level)
-        .execute(&db)
-        .await?;
-
-    Ok(Json(json!("created successfully")))
+    Ok(Json(json!(row)))
 }

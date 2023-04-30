@@ -12,6 +12,13 @@ pub enum CustomErrors {
     UserDoesNotExist,
     UserAlreadyExist,
     Unauthorized,
+    SqlxError(String),
+}
+
+impl From<sqlx::error::Error> for CustomErrors {
+    fn from(value: sqlx::error::Error) -> Self {
+        Self::SqlxError(value.to_string())
+    }
 }
 
 impl IntoResponse for CustomErrors {
@@ -28,6 +35,7 @@ impl IntoResponse for CustomErrors {
             Self::UserDoesNotExist => (StatusCode::UNAUTHORIZED, "User does not exist"),
             Self::UserAlreadyExist => (StatusCode::BAD_REQUEST, "User already exist"),
             Self::Unauthorized => (StatusCode::UNAUTHORIZED, "authentication failed"),
+            Self::SqlxError(_) => (StatusCode::BAD_REQUEST, "sqlx error"),
         };
 
         (status, Json(json!({ "error": err_msg }))).into_response()

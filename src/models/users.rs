@@ -32,7 +32,7 @@ pub struct ResponseUser{
     pub token: String,
 }
 
-#[derive(Serialize,Deserialize, Debug,FromRow)]
+#[derive(Serialize,Deserialize, Debug)]
 pub struct TokenUser{
     pub id: Uuid,
     pub email: String,
