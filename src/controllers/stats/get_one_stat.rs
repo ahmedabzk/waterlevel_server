@@ -1,33 +1,23 @@
-use axum::{extract::{State, Path}, Json};
+use axum::{
+    extract::{Path, State},
+    Json,
+};
 use serde_json::{json, Value};
-use sqlx::{PgPool};
+use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
-use crate::{errors::custom_errors::CustomErrors, models::statsmodel::{ResponseStats}};
-
-
+use crate::{errors::custom_errors::CustomErrors, models::statsmodel::ResponseStats};
 
 pub async fn get_stat_by_id(
     State(db): State<PgPool>,
     Path(id): Path<Uuid>,
-) -> Result<Json<Value>,CustomErrors>{
-    let stat = sqlx::query_as::<_,ResponseStats>("SELECT * FROM stats where id=$1")
+) -> Result<Json<Value>, CustomErrors> {
+    let row = sqlx::query("SELECT * FROM stats where id=$1")
         .bind(id)
         .fetch_one(&db)
-        .await
-        .map_err(|err|{
-        println!("error getting the stat {:?}", err);
-        CustomErrors::InternalServerError
-    })?;
+        .await?;
 
-
-    // let stat = ResponseStats{
-    //         id:row.id,
-    //         chlorine_level:row.chlorine_level,
-    //         ph:row.ph,
-    //         turbidity:row.turbidity,
-    //         water_level:row.water_level,
-    //     };
+    let stat = ResponseStats::from_row(&row).expect("stat should be here");
 
     Ok(Json(json!(stat)))
 }

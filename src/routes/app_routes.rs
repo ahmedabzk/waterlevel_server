@@ -19,7 +19,7 @@ pub async fn create_routes(app_state: AppState) -> Router<()> {
         .route("/hello", get(|| async { "Hello! World" }))
         .route("/api/v1/createStats", post(post_stats))
         .route("/api/v1/getStats", get(get_all_stats))
-        .route("/api/v1/getStatById", get(get_stat_by_id))
+        .route("/api/v1/getStatById/:id", get(get_stat_by_id))
         .route_layer(middleware::from_fn_with_state(
             app_state.clone(),
             require_auth,

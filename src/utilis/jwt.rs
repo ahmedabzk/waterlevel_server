@@ -41,7 +41,7 @@ pub async fn verify_token(
 
     let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
     
-    let token_data = decode::<Claims>(&token, &key, &validation).map_err(|err| match  err.kind() {
+    let token_data = decode::<Claims>(token, &key, &validation).map_err(|err| match  err.kind() {
         jsonwebtoken::errors::ErrorKind::InvalidToken
         | jsonwebtoken::errors::ErrorKind::InvalidSignature
         | jsonwebtoken::errors::ErrorKind::ExpiredSignature => {
